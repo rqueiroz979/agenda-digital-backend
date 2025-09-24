@@ -15,7 +15,7 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Habilitar CORS para permitir requisições do frontend
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(client_bp, url_prefix='/api')

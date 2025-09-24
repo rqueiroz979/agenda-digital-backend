@@ -15,10 +15,13 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Habilitar CORS para permitir requisições do frontend
-CORS(app)
+CORS(app, 
+     origins=["https://agenda-digital-frontend.netlify.app"], 
+     methods=["GET", "POST", "PUT", "DELETE"], 
+     allow_headers=["Content-Type", "Authorization"] )
+
 
 CORS(app, origins=["https://agenda-digital-frontend.netlify.app"])
-
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(client_bp, url_prefix='/api')
 app.register_blueprint(external_apis_bp, url_prefix='/api')

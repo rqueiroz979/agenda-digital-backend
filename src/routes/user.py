@@ -1,45 +1,53 @@
 from flask import Blueprint, request, jsonify
-from src.models.user import User, db
+from main import db, SECRET_KEY
+from src.models.user import User
+import jwt, datetime
 
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint("user", __name__)
 
-@user_bp.route('/users', methods=['GET'])
-def get_users():
-    """Obter todos os usuários"""
-    try:
-        users = User.query.all()
-        return jsonify([user.to_dict() for user in users]), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# Criar usuário (cadastro)
+@user_bp.route("/", methods=["POST"])
+def criar_usuario():
+    data = request.get_json()
 
-@user_bp.route('/users/<int:user_id>', methods=['GET'])
-def get_user(user_id):
-    """Obter um usuário específico"""
-    try:
-        user = User.query.get_or_404(user_id)
-        return jsonify(user.to_dict()), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 404
+    if not data.get("email") or not data.get("senha"):
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
 
-@user_bp.route('/users', methods=['POST'])
-def create_user():
-    """Criar um novo usuário"""
-    try:
-        data = request.get_json()
-        
-        if not data or not data.get('username') or not data.get('email'):
-            return jsonify({'error': 'Username e email são obrigatórios'}), 400
-        
-        user = User(
-            username=data.get('username'),
-            email=data.get('email')
-        )
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        return jsonify(user.to_dict()), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+    if User.query.filter_by(email=data["email"]).first():
+        return jsonify({"error": "Usuário já existe"}), 400
 
+    novo_user = User(
+        nome=data.get("nome"),
+        email=data["email"]
+    )
+    novo_user.set_password(data["senha"])
+
+    db.session.add(novo_user)
+    db.session.commit()
+
+    return jsonify({"msg": "✅ Usuário criado com sucesso!"}), 201
+
+
+# Login
+@user_bp.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    if not data.get("email") or not data.get("senha"):
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
+
+    user = User.query.filter_by(email=data.get("email")).first()
+
+    if not user or not user.check_password(data.get("senha")):
+        return jsonify({"error": "Credenciais inválidas"}), 401
+
+    token = jwt.encode(
+        {
+            "user_id": user.id,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=8)  # expira em 8 horas
+        },
+        SECRET_KEY,
+        algorithm="HS256"
+    )
+
+    return jsonify({"token": token, "user": {"id": user.id, "nome": user.nome, "email": user.email}})

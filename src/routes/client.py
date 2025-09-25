@@ -1,126 +1,128 @@
 from flask import Blueprint, request, jsonify
-from src.models.client import Client, db
-from datetime import datetime
+from main import db
+from src.models.client import Cliente
 
-client_bp = Blueprint('client', __name__)
+client_bp = Blueprint("client", __name__)
 
-@client_bp.route('/clients', methods=['GET'])
-def get_clients():
-    """Obter todos os clientes"""
+# Criar cliente
+@client_bp.route("/", methods=["POST"])
+def criar_cliente():
+    data = request.get_json()
+
     try:
-        clients = Client.query.all()
-        return jsonify([client.to_dict() for client in clients]), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@client_bp.route('/clients/<int:client_id>', methods=['GET'])
-def get_client(client_id):
-    """Obter um cliente específico"""
-    try:
-        client = Client.query.get_or_404(client_id)
-        return jsonify(client.to_dict()), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 404
-
-@client_bp.route('/clients', methods=['POST'])
-def create_client():
-    """Criar um novo cliente"""
-    try:
-        data = request.get_json()
-        
-        if not data or not data.get('name'):
-            return jsonify({'error': 'Nome é obrigatório'}), 400
-        
-        # Converter string de data para objeto date se fornecido
-        last_purchase = None
-        if data.get('last_purchase'):
-            try:
-                last_purchase = datetime.strptime(data.get('last_purchase'), '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'Formato de data inválido para last_purchase. Use YYYY-MM-DD'}), 400
-        
-        client = Client(
-            name=data.get('name'),
-            fantasy_name=data.get('fantasy_name'),
-            cnpj_cpf=data.get('cnpj_cpf'),
-            email=data.get('email'),
-            phone=data.get('phone'),
-            phone2=data.get('phone2'),
-            mobile=data.get('mobile'),
-            cep=data.get('cep'),
-            address=data.get('address'),
-            number=data.get('number'),
-            complement=data.get('complement'),
-            neighborhood=data.get('neighborhood'),
-            city=data.get('city'),
-            state=data.get('state'),
-            country=data.get('country', 'Brasil'),
-            company=data.get('company'),
-            state_registration=data.get('state_registration'),
-            municipal_code=data.get('municipal_code'),
-            country_code=data.get('country_code', '1058'),
-            teamviewer_id=data.get('teamviewer_id'),
-            anydesk_id=data.get('anydesk_id'),
-            notes=data.get('notes'),
-            contact_info=data.get('contact_info'),
-            client_group=data.get('client_group'),
-            vendor=data.get('vendor'),
-            contract_type=data.get('contract_type'),
-            payment_type=data.get('payment_type'),
-            tax_regime=data.get('tax_regime'),
-            monthly_fee=data.get('monthly_fee'),
-            last_purchase=last_purchase,
-            sale_value=data.get('sale_value')
+        novo_cliente = Cliente(
+            cnpj=data.get("cnpj"),
+            razao_social=data.get("razao_social"),
+            nome_fantasia=data.get("nome_fantasia"),
+            inscricao_estadual=data.get("inscricao_estadual"),
+            inscricao_municipal=data.get("inscricao_municipal"),
+            telefone=data.get("telefone"),
+            whatsapp=data.get("whatsapp"),
+            email=data.get("email"),
+            endereco=data.get("endereco"),
+            teamviewer_id=data.get("teamviewer_id"),
+            anydesk_id=data.get("anydesk_id"),
+            observacoes=data.get("observacoes"),
         )
-        
-        db.session.add(client)
+        db.session.add(novo_cliente)
         db.session.commit()
-        
-        return jsonify(client.to_dict()), 201
+
+        return jsonify({"msg": "✅ Cliente criado com sucesso!", "id": novo_cliente.id}), 201
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 400
 
-@client_bp.route('/clients/<int:client_id>', methods=['PUT'])
-def update_client(client_id):
-    """Atualizar um cliente"""
+
+# Listar todos os clientes
+@client_bp.route("/", methods=["GET"])
+def listar_clientes():
+    clientes = Cliente.query.all()
+    return jsonify([
+        {
+            "id": c.id,
+            "cnpj": c.cnpj,
+            "razao_social": c.razao_social,
+            "nome_fantasia": c.nome_fantasia,
+            "inscricao_estadual": c.inscricao_estadual,
+            "inscricao_municipal": c.inscricao_municipal,
+            "telefone": c.telefone,
+            "whatsapp": c.whatsapp,
+            "email": c.email,
+            "endereco": c.endereco,
+            "teamviewer_id": c.teamviewer_id,
+            "anydesk_id": c.anydesk_id,
+            "observacoes": c.observacoes,
+        }
+        for c in clientes
+    ])
+
+
+# Buscar cliente por ID
+@client_bp.route("/<int:cliente_id>", methods=["GET"])
+def obter_cliente(cliente_id):
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({"error": "Cliente não encontrado"}), 404
+
+    return jsonify({
+        "id": cliente.id,
+        "cnpj": cliente.cnpj,
+        "razao_social": cliente.razao_social,
+        "nome_fantasia": cliente.nome_fantasia,
+        "inscricao_estadual": cliente.inscricao_estadual,
+        "inscricao_municipal": cliente.inscricao_municipal,
+        "telefone": cliente.telefone,
+        "whatsapp": cliente.whatsapp,
+        "email": cliente.email,
+        "endereco": cliente.endereco,
+        "teamviewer_id": cliente.teamviewer_id,
+        "anydesk_id": cliente.anydesk_id,
+        "observacoes": cliente.observacoes,
+    })
+
+
+# Atualizar cliente
+@client_bp.route("/<int:cliente_id>", methods=["PUT"])
+def atualizar_cliente(cliente_id):
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({"error": "Cliente não encontrado"}), 404
+
+    data = request.get_json()
     try:
-        client = Client.query.get_or_404(client_id)
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({'error': 'Dados não fornecidos'}), 400
-        
-        # Converter string de data para objeto date se fornecido
-        if data.get('last_purchase'):
-            try:
-                data['last_purchase'] = datetime.strptime(data.get('last_purchase'), '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'Formato de data inválido para last_purchase. Use YYYY-MM-DD'}), 400
-        
-        # Atualizar campos
-        for key, value in data.items():
-            if hasattr(client, key):
-                setattr(client, key, value)
-        
-        client.updated_at = datetime.utcnow()
+        cliente.cnpj = data.get("cnpj", cliente.cnpj)
+        cliente.razao_social = data.get("razao_social", cliente.razao_social)
+        cliente.nome_fantasia = data.get("nome_fantasia", cliente.nome_fantasia)
+        cliente.inscricao_estadual = data.get("inscricao_estadual", cliente.inscricao_estadual)
+        cliente.inscricao_municipal = data.get("inscricao_municipal", cliente.inscricao_municipal)
+        cliente.telefone = data.get("telefone", cliente.telefone)
+        cliente.whatsapp = data.get("whatsapp", cliente.whatsapp)
+        cliente.email = data.get("email", cliente.email)
+        cliente.endereco = data.get("endereco", cliente.endereco)
+        cliente.teamviewer_id = data.get("teamviewer_id", cliente.teamviewer_id)
+        cliente.anydesk_id = data.get("anydesk_id", cliente.anydesk_id)
+        cliente.observacoes = data.get("observacoes", cliente.observacoes)
+
         db.session.commit()
-        
-        return jsonify(client.to_dict()), 200
+        return jsonify({"msg": "✅ Cliente atualizado com sucesso!"})
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 400
 
-@client_bp.route('/clients/<int:client_id>', methods=['DELETE'])
-def delete_client(client_id):
-    """Deletar um cliente"""
+
+# Deletar cliente
+@client_bp.route("/<int:cliente_id>", methods=["DELETE"])
+def deletar_cliente(cliente_id):
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({"error": "Cliente não encontrado"}), 404
+
     try:
-        client = Client.query.get_or_404(client_id)
-        db.session.delete(client)
+        db.session.delete(cliente)
         db.session.commit()
-        
-        return jsonify({'message': 'Cliente deletado com sucesso'}), 200
+        return jsonify({"msg": "🗑️ Cliente deletado com sucesso!"})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
+        return jsonify({"error": str(e)}), 400

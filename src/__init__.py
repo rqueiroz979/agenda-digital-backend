@@ -1,27 +1,32 @@
-from flask import Flask, jsonify
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from .extensions import db, migrate
-from .config import Config
+from flask_migrate import Migrate
+from dotenv import load_dotenv
+import os
+
+db = SQLAlchemy()
+migrate = Migrate()
 
 def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
+    load_dotenv()
 
-    # Initialize extensions
-    db.init_app(app)
-    migrate.init_app(app, db)
+    app = Flask(__name__)
     CORS(app)
 
-    # health
-    @app.route("/health")
-    def health():
-        return jsonify({"status": "ok"})
+    # Configuração do banco
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "chave-secreta")
 
-    # register blueprints under /api
-    from .routes.user_routes import user_bp
-    from .routes.client_routes import client_bp
+    db.init_app(app)
+    migrate.init_app(app, db)
 
-    app.register_blueprint(user_bp, url_prefix="/api/usuarios")
-    app.register_blueprint(client_bp, url_prefix="/api/clientes")
+    # Importa e registra as rotas
+    from src.routes.usuarios import usuarios_bp
+    from src.routes.auth import auth_bp
+
+    app.register_blueprint(usuarios_bp, url_prefix="/api/usuarios")
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
     return app

@@ -1,46 +1,94 @@
-# Agenda Digital - Backend (Final Package)
+# 📅 Agenda Digital - Backend
 
-This is the final backend package prepared to run on **Render** and use **Supabase (Postgres)** as database.
+Este é o backend do projeto **Agenda Digital**, responsável pela API de usuários, autenticação e integração com banco de dados PostgreSQL (Supabase).
 
-## Quick overview
-- Flask application using Application Factory pattern.
-- SQLAlchemy models for users and clients.
-- JWT-based authentication (PyJWT).
-- Flask-Migrate (Alembic) for database migrations.
-- Seed script to create an admin user.
+Frontend disponível em: [Agenda Digital Frontend](https://github.com/rqueiroz979/agenda-digital-frontend)
 
-## Deploy (Render)
-1. Push this repository to GitHub.
-2. Create a new Web Service on Render linking this repo.
-3. Add the following Environment Variables on Render:
-   - DATABASE_URL (Supabase connection string)
-   - SECRET_KEY
-   - JWT_EXP_HOURS (optional, default 8)
-4. Build Command:
-   ```
-   pip install -r requirements.txt && flask db upgrade
-   ```
-5. Start Command:
-   ```
-   gunicorn main:app
-   ```
-6. After deploy finishes, open **Shell** on Render and run:
-   ```
-   python seed.py
-   ```
-   This will create an admin user:
-   - email: admin@empresa.com
-   - senha: 123456
+---
 
-## API Endpoints (base path /api)
-- `POST /api/usuarios/` - create user
-- `POST /api/usuarios/login` - login -> returns JWT
-- `GET /api/clientes/` - list clients (requires Authorization: Bearer <token>)
-- `POST /api/clientes/` - create client (requires token)
-- `GET /api/clientes/<id>` - get client
-- `PUT /api/clientes/<id>` - update client
-- `DELETE /api/clientes/<id>` - delete client
+## 🚀 Tecnologias utilizadas
+- Python 3.13
+- Flask 3.x
+- Flask-SQLAlchemy
+- Flask-Migrate (migrations)
+- PostgreSQL (Supabase)
+- Render (deploy backend)
+- Netlify (deploy frontend)
 
-## Notes
-- Do not commit `.env` with secrets.
-- For frontend (Netlify), set `VITE_API_URL` to `https://<your-render-url>/api`.
+---
+
+## 📂 Estrutura principal
+```
+agenda-digital-backend/
+├── src/
+│   ├── main.py          # Ponto de entrada da aplicação
+│   ├── models/          # Modelos do banco de dados
+│   ├── routes/          # Rotas da API
+│   ├── config.py        # Configurações (carrega DATABASE_URL do Render)
+│   └── __init__.py
+├── requirements.txt     # Dependências
+├── DOCUMENTACAO_GERAL.md # Documentação completa do projeto
+└── README.md            # Este arquivo (resumo)
+```
+
+---
+
+## ⚙️ Configuração de Ambiente
+
+### 🔑 Variáveis de ambiente necessárias
+No **Render**:
+- `DATABASE_URL` → string de conexão do Supabase  
+  Exemplo:  
+  ```
+  postgresql://postgres.stgphknybtgcdulqfgcb:SENHA@aws-1-sa-east-1.pooler.supabase.com:6543/postgres
+  ```
+- `SECRET_KEY` → chave secreta para JWT
+
+---
+
+## ▶️ Como rodar no Render
+O Render já está configurado para:
+```bash
+gunicorn src.main:app
+```
+
+---
+
+## 🛠 Endpoints principais
+
+### Health Check
+```
+GET /health
+Response: { "status": "ok" }
+```
+
+### Criar usuário
+```
+POST /api/usuarios/
+{
+  "nome": "Ramon",
+  "email": "ramon@email.com",
+  "senha": "123456"
+}
+```
+
+### Login
+```
+POST /api/login/
+{
+  "email": "ramon@email.com",
+  "senha": "123456"
+}
+```
+
+### Listar usuários (exemplo protegido)
+```
+GET /api/usuarios/
+Authorization: Bearer <TOKEN>
+```
+
+---
+
+## 📖 Documentação Completa
+Para detalhes do histórico, decisões técnicas e estrutura completa, veja:  
+👉 [DOCUMENTACAO_GERAL.md](./DOCUMENTACAO_GERAL.md)

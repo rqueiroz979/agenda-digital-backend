@@ -1,54 +1,17 @@
-from flask import Blueprint, request, jsonify
-from extensions import db
-from src.config import Config
-from src.models.user import User
-import jwt, datetime
+from sqlalchemy import Column, Integer, String, Text
+from database import Base
 
-user_bp = Blueprint("user", __name__)
+class Cliente(Base):
+    __tablename__ = "clientes"
 
-# Criar usuário (cadastro)
-@user_bp.route("/", methods=["POST"])
-def criar_usuario():
-    data = request.get_json()
-
-    if not data.get("email") or not data.get("senha"):
-        return jsonify({"error": "Email e senha são obrigatórios"}), 400
-
-    if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"error": "Usuário já existe"}), 400
-
-    novo_user = User(
-        nome=data.get("nome"),
-        email=data["email"]
-    )
-    novo_user.set_password(data["senha"])
-
-    db.session.add(novo_user)
-    db.session.commit()
-
-    return jsonify({"msg": "✅ Usuário criado com sucesso!"}), 201
-
-
-# Login
-@user_bp.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-
-    if not data.get("email") or not data.get("senha"):
-        return jsonify({"error": "Email e senha são obrigatórios"}), 400
-
-    user = User.query.filter_by(email=data.get("email")).first()
-
-    if not user or not user.check_password(data.get("senha")):
-        return jsonify({"error": "Credenciais inválidas"}), 401
-
-    token = jwt.encode(
-        {
-            "user_id": user.id,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=8)  # expira em 8 horas
-        },
-        Config.SECRET_KEY,
-        algorithm="HS256"
-    )
-
-    return jsonify({"token": token, "user": {"id": user.id, "nome": user.nome, "email": user.email}})
+    id = Column(Integer, primary_key=True, index=True)
+    cnpj = Column(String, nullable=False)
+    razao_social = Column(String, nullable=False)
+    nome_fantasia = Column(String)
+    endereco = Column(Text)
+    telefone = Column(String)
+    whatsapp = Column(String)
+    email = Column(String)
+    teamviewer_id = Column(String)
+    anydesk_id = Column(String)
+    observacoes = Column(Text)

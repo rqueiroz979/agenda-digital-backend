@@ -1,21 +1,23 @@
-from flask_sqlalchemy import SQLAlchemy
+from .extensions import db
 import uuid
 
-db = SQLAlchemy()
+def gen_uuid():
+    return str(uuid.uuid4())
 
 class Usuario(db.Model):
     __tablename__ = "usuarios"
-    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    nome = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    senha = db.Column(db.String(200), nullable=False)
+    id = db.Column(db.String, primary_key=True, default=gen_uuid)
+    nome = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(200), unique=True, nullable=False)
+    senha_hash = db.Column(db.String(300), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     def to_dict(self):
         return {"id": self.id, "nome": self.nome, "email": self.email}
 
 class Cliente(db.Model):
     __tablename__ = "clientes"
-    id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.String, primary_key=True, default=gen_uuid)
     cnpj = db.Column(db.String(18), nullable=False)
     razao_social = db.Column(db.Text, nullable=False)
     nome_fantasia = db.Column(db.Text, nullable=False)
@@ -36,32 +38,23 @@ class Cliente(db.Model):
     valor_mensalidade = db.Column(db.Numeric(10,2), nullable=False)
     tipo_contrato = db.Column(db.Text, nullable=False)
 
-    # IDs TeamViewer e AnyDesk
-    teamviewer1 = db.Column(db.Text)
-    teamviewer1_senha = db.Column(db.Text)
-    teamviewer2 = db.Column(db.Text)
-    teamviewer2_senha = db.Column(db.Text)
-    teamviewer3 = db.Column(db.Text)
-    teamviewer3_senha = db.Column(db.Text)
-    teamviewer4 = db.Column(db.Text)
-    teamviewer4_senha = db.Column(db.Text)
-    teamviewer5 = db.Column(db.Text)
-    teamviewer5_senha = db.Column(db.Text)
-    teamviewer6 = db.Column(db.Text)
-    teamviewer6_senha = db.Column(db.Text)
+    # teamviewer (até 6)
+    teamviewer1 = db.Column(db.Text); teamviewer1_senha = db.Column(db.Text)
+    teamviewer2 = db.Column(db.Text); teamviewer2_senha = db.Column(db.Text)
+    teamviewer3 = db.Column(db.Text); teamviewer3_senha = db.Column(db.Text)
+    teamviewer4 = db.Column(db.Text); teamviewer4_senha = db.Column(db.Text)
+    teamviewer5 = db.Column(db.Text); teamviewer5_senha = db.Column(db.Text)
+    teamviewer6 = db.Column(db.Text); teamviewer6_senha = db.Column(db.Text)
 
-    anydesk1 = db.Column(db.Text)
-    anydesk1_senha = db.Column(db.Text)
-    anydesk2 = db.Column(db.Text)
-    anydesk2_senha = db.Column(db.Text)
-    anydesk3 = db.Column(db.Text)
-    anydesk3_senha = db.Column(db.Text)
-    anydesk4 = db.Column(db.Text)
-    anydesk4_senha = db.Column(db.Text)
-    anydesk5 = db.Column(db.Text)
-    anydesk5_senha = db.Column(db.Text)
-    anydesk6 = db.Column(db.Text)
-    anydesk6_senha = db.Column(db.Text)
+    # anydesk (até 6)
+    anydesk1 = db.Column(db.Text); anydesk1_senha = db.Column(db.Text)
+    anydesk2 = db.Column(db.Text); anydesk2_senha = db.Column(db.Text)
+    anydesk3 = db.Column(db.Text); anydesk3_senha = db.Column(db.Text)
+    anydesk4 = db.Column(db.Text); anydesk4_senha = db.Column(db.Text)
+    anydesk5 = db.Column(db.Text); anydesk5_senha = db.Column(db.Text)
+    anydesk6 = db.Column(db.Text); anydesk6_senha = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}

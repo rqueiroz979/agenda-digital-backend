@@ -1,36 +1,23 @@
-import os
-from flask import Flask, jsonify
-from .extensions import db, migrate, cors
+from flask import Flask
+from flask_cors import CORS
+from .models import db
 from .routes.auth import auth_bp
 from .routes.clientes import clientes_bp
 
+
 def create_app():
-    app = Flask(__name__, static_folder=None)
+    app = Flask(__name__)
+    CORS(app)
 
-    # Configurações
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///agenda_digital.db")
+    # Configuração do banco (será sobrescrita pelo Render)
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///agenda.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "secret123")
-    app.config["JWT_EXP_HOURS"] = int(os.getenv("JWT_EXP_HOURS", "8"))
 
-    # Inicializa extensões
+    # Inicializa o banco
     db.init_app(app)
-    migrate.init_app(app, db)
 
-    # CORS - permite origem definida na env
-    allowed = os.getenv("ALLOWED_ORIGINS", "")
-    origins = [o.strip() for o in allowed.split(",") if o.strip()]
-    if origins:
-        cors.init_app(app, resources={r"/*": {"origins": origins}})
-    else:
-        cors.init_app(app)
-
-    # registrando blueprints
-    app.register_blueprint(auth_bp, url_prefix="/api")
-    app.register_blueprint(clientes_bp, url_prefix="/api")
-
-    @app.route("/health", methods=["GET"])
-    def health():
-        return jsonify({"status": "ok"})
+    # Registra as rotas
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(clientes_bp, url_prefix="/clientes")
 
     return app

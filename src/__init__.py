@@ -8,7 +8,7 @@ def create_app():
     app = Flask(__name__, static_folder=None)
 
     # Configurações
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///agenda_digital.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "secret123")
     app.config["JWT_EXP_HOURS"] = int(os.getenv("JWT_EXP_HOURS", "8"))
@@ -26,7 +26,7 @@ def create_app():
         cors.init_app(app)
 
     # registrando blueprints
-    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(clientes_bp, url_prefix="/api")
 
     @app.route("/health", methods=["GET"])

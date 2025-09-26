@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from src.models import db, Usuario
+from src.extensions import db
+from src.models.user import User as Usuario
 from src.utils.security import gerar_senha_hash, verificar_senha, gerar_token
 
 auth_bp = Blueprint("auth", __name__)

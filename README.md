@@ -1,94 +1,56 @@
-# 📅 Agenda Digital - Backend
+# Agenda Digital - Backend
 
-Este é o backend do projeto **Agenda Digital**, responsável pela API de usuários, autenticação e integração com banco de dados PostgreSQL (Supabase).
+Este é o repositório do backend da aplicação Agenda Digital, desenvolvido com Flask.
 
-Frontend disponível em: [Agenda Digital Frontend](https://github.com/rqueiroz979/agenda-digital-frontend)
+## Configuração do Ambiente
 
----
+1.  **Clone o repositório:**
+    ```bash
+    git clone <URL_DO_REPOSITORIO>
+    cd agenda-digital-backend
+    ```
 
-## 🚀 Tecnologias utilizadas
-- Python 3.13
-- Flask 3.x
-- Flask-SQLAlchemy
-- Flask-Migrate (migrations)
-- PostgreSQL (Supabase)
-- Render (deploy backend)
-- Netlify (deploy frontend)
+2.  **Crie e ative um ambiente virtual:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
----
+3.  **Instale as dependências:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## 📂 Estrutura principal
-```
-agenda-digital-backend/
-├── src/
-│   ├── main.py          # Ponto de entrada da aplicação
-│   ├── models/          # Modelos do banco de dados
-│   ├── routes/          # Rotas da API
-│   ├── config.py        # Configurações (carrega DATABASE_URL do Render)
-│   └── __init__.py
-├── requirements.txt     # Dependências
-├── DOCUMENTACAO_GERAL.md # Documentação completa do projeto
-└── README.md            # Este arquivo (resumo)
-```
+4.  **Configure as variáveis de ambiente:**
+    Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+    ```
+    DATABASE_URL=postgresql://user:password@host:port/database_name
+    SECRET_KEY=sua_chave_secreta_para_jwt
+    JWT_EXP_HOURS=8
+    ALLOWED_ORIGINS=http://localhost:5173,https://seu-frontend.netlify.app
+    EXTERNAL_API_TIMEOUT=8
+    ```
+    - `DATABASE_URL`: String de conexão com o banco de dados PostgreSQL (ex: Supabase).
+    - `SECRET_KEY`: Chave secreta para a assinatura de tokens JWT.
+    - `JWT_EXP_HOURS`: Tempo de expiração do token JWT em horas.
+    - `ALLOWED_ORIGINS`: Origens permitidas para CORS, separadas por vírgula.
 
----
+5.  **Inicialize e aplique as migrações do banco de dados:**
+    Certifique-se de que o banco de dados esteja vazio ou que as tabelas `clientes` e `usuarios` não existam, caso contrário, você pode enfrentar erros de tipo de coluna.
+    ```bash
+    export FLASK_APP=src/__init__.py
+    flask db init
+    flask db migrate -m "Initial migration"
+    flask db upgrade
+    ```
 
-## ⚙️ Configuração de Ambiente
+## Execução da Aplicação
 
-### 🔑 Variáveis de ambiente necessárias
-No **Render**:
-- `DATABASE_URL` → string de conexão do Supabase  
-  Exemplo:  
-  ```
-  postgresql://postgres.stgphknybtgcdulqfgcb:SENHA@aws-1-sa-east-1.pooler.supabase.com:6543/postgres
-  ```
-- `SECRET_KEY` → chave secreta para JWT
+Para iniciar o servidor Flask:
 
----
-
-## ▶️ Como rodar no Render
-O Render já está configurado para:
 ```bash
-gunicorn src.main:app
+export FLASK_APP=src/__init__.py
+flask run --port 5000
 ```
 
----
-
-## 🛠 Endpoints principais
-
-### Health Check
-```
-GET /health
-Response: { "status": "ok" }
-```
-
-### Criar usuário
-```
-POST /api/usuarios/
-{
-  "nome": "Ramon",
-  "email": "ramon@email.com",
-  "senha": "123456"
-}
-```
-
-### Login
-```
-POST /api/login/
-{
-  "email": "ramon@email.com",
-  "senha": "123456"
-}
-```
-
-### Listar usuários (exemplo protegido)
-```
-GET /api/usuarios/
-Authorization: Bearer <TOKEN>
-```
-
----
-
-## 📖 Documentação Completa
-Para detalhes do histórico, decisões técnicas e estrutura completa, veja:  
-👉 [DOCUMENTACAO_GERAL.md](./DOCUMENTACAO_GERAL.md)
+O backend estará disponível em `http://localhost:5000`.
